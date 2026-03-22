@@ -2,6 +2,16 @@
 
 A production-grade ETL pipeline that ingests FAOSTAT crop and production value data, applies transformations (pivoting, standardization, validation), and loads into a clean analytics layer. Implements append-only raw tables and idempotent upserts to enable safe, repeatable loads.
 
+### Key Properties
+
+- **Raw Data Untouched** — Original data is stored exactly as it arrives in the raw tables. This means you can always trace back to the source if something needs investigation.
+
+- **Safe to Rerun** — The pipeline uses upserts, which means if you run it twice with the same data, it updates existing records instead of creating duplicates.
+
+- **Type-Safe** — Numbers are validated as proper numbers. Text is cleaned (spaces trimmed). If a value looks wrong or is missing, it's skipped with a warning instead of causing the pipeline to fail.
+
+- **Observable** — Every record includes a `cleaned_at` timestamp. You can see exactly when each row was last processed, making it easy to spot stale data.
+
 ## Architecture
 
 Three-layer data stack:
@@ -129,19 +139,25 @@ fao-landuse-efficiency/
 ## Pipeline Behavior
 
 **First run:**
-- `load_raw.py` appends raw data (~330 rows per table)
-- `etl.py` extracts, transforms, and upserts into clean tables
+- `load_raw.py` reads the CSV files and appends them to raw tables as-is
+- `etl.py` processes the raw data, cleans it, and loads it into clean tables
+- Result: ~330 rows in each clean table ready for analysis
 
 **Subsequent runs of `etl.py`:**
-- Processes the same raw data
-- Upserts update existing `(country, crop, year)` rows
-- `cleaned_at` timestamp refreshes
-- No duplicates created
+- The script processes the same raw data again
+- Instead of creating duplicate rows, it updates the existing ones with fresh calculations
+- The `cleaned_at` timestamp gets refreshed so you know when it last ran
+- No duplicate data is created—the system prevents it automatically
 
 **Adding new years:**
-- Append new rows to raw tables
-- Update `ANALYSIS_YEAR_END` in `etl.py`
-- Run `etl.py` to process new data
+- If you get new raw data (e.g., for 2025), add it to the raw tables
+- Update `ANALYSIS_YEAR_END` in `etl.py` to include the new year
+- Run `etl.py` and it will process the new data alongside the old data
+
+**What makes it safe to rerun:**
+- The database has a unique constraint on `(country, crop, year)` so each combination can only exist once
+- When you upsert, the database either inserts a new row (if it doesn't exist) or updates it (if it does)
+- You can run the ETL every hour, every day, or whenever you get new data without worrying about duplicates
 
 ## Configuration
 
