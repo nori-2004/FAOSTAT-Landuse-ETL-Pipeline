@@ -25,7 +25,7 @@ Three-layer data stack:
 
 1. **Supabase Account** ([supabase.com](https://supabase.com))
    - Create a new project
-   - Copy the database connection URL
+   - Copy the database connection URI
 
 2. **Python 3.8+** with required packages:
    ```powershell
@@ -33,7 +33,7 @@ Three-layer data stack:
    ```
 
 3. **Environment Variables**
-   - Create a `.env` file in the project root:
+   - Create a `.env` file in the project root with your Supabase URI:
      ```
      SUPABASE_URL=postgresql://postgres.xxxxx:password@aws-0-region.pooler.supabase.com:6543/postgres
      ```
