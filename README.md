@@ -16,7 +16,11 @@ A small end-to-end data project built on **FAOSTAT** crop area/production/value 
 - [Pipeline overview](#pipeline-overview)
 - [Why it’s good / efficient](#why-its-good--efficient)
 - [Dashboards (frontend)](#dashboards-frontend)
+- [File structure](#file-structure)
+- [Running the pipeline](#running-the-pipeline)
+- [Principles](#principles)
 - [Future improvements](#future-improvements)
+- [License](#license)
 
 ---
 
@@ -357,7 +361,22 @@ This project follows data engineering best practices:
 
 ---
 
+---
+
+## Data source
+
+This project uses publicly available data from **FAOSTAT** (Food and Agriculture Organization of the United Nations):
+
+- **FAOSTAT Production Data**: crop production, area harvested, and yield across countries and years
+- **FAOSTAT Value Data**: gross production value of agricultural commodities
+
+Data is sourced via the FAOSTAT bulk download API and stored in the `/data/raw/` directory.
+
+For more information, visit: [FAOSTAT](https://www.fao.org/faostat/)
+
+---
+
 ## License
 
-Internal project. For questions or contributions, contact the UBC CSFS team.
+Personal project for exploring agricultural land-use efficiency and data engineering best practices.
 
