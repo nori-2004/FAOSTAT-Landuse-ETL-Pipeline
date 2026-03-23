@@ -24,26 +24,6 @@ JOIN value_clean v
    AND c.year    = v.year;
 
 
-CREATE OR REPLACE VIEW v_efficiency AS
-SELECT
-    c.country,
-    c.crop,
-    c.year,
-    c.area_harvested_ha,
-    c.yield_kg_ha,
-    c.production_tonnes,
-    ROUND(v.gross_production_value_kusd / 1000.0, 2) AS gpv_usd_millions,
-    ROUND(
-        (v.gross_production_value_kusd * 1000.0) / NULLIF(c.area_harvested_ha, 0),
-        2
-    ) AS gpv_usd_per_ha
-FROM crops_clean c
-JOIN value_clean v
-    ON c.country = v.country
-   AND c.crop    = v.crop
-   AND c.year    = v.year;
-
-
 CREATE OR REPLACE VIEW vw_agri_productivity_drivers AS
 SELECT
     b.country,
@@ -73,5 +53,24 @@ SELECT
     ) AS value_per_tonne_roll3
 
 FROM vw_agri_base b;
+
+CREATE OR REPLACE VIEW v_efficiency AS
+SELECT
+    c.country,
+    c.crop,
+    c.year,
+    c.area_harvested_ha,
+    c.yield_kg_ha,
+    c.production_tonnes,
+    ROUND(v.gross_production_value_kusd / 1000.0, 2) AS gpv_usd_millions,
+    ROUND(
+        (v.gross_production_value_kusd * 1000.0) / NULLIF(c.area_harvested_ha, 0),
+        2
+    ) AS gpv_usd_per_ha
+FROM crops_clean c
+JOIN value_clean v
+    ON c.country = v.country
+   AND c.crop    = v.crop
+   AND c.year    = v.year;
 
 
