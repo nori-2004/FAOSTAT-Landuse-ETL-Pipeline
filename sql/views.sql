@@ -40,12 +40,6 @@ SELECT
         ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
     ) AS value_per_ha_roll3,
 
-    AVG(b.yield_t_per_ha) OVER (
-        PARTITION BY b.country, b.crop
-        ORDER BY b.year
-        ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
-    ) AS yield_t_per_ha_roll3,
-
     AVG(b.value_per_tonne) OVER (
         PARTITION BY b.country, b.crop
         ORDER BY b.year

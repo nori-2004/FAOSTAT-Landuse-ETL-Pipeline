@@ -26,23 +26,25 @@ A small end-to-end data project built on **FAOSTAT** crop area/production/value 
 
 ## Architecture
 
-**3-layer data stack (Supabase Postgres)**
+**Medallion Architecture (Supabase Postgres)**
+
+Implements the medallion (or lakehouse) pattern with three distinct layers:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  FRONTEND: Streamlit Dashboard (app/)                      │
+│  PRESENTATION LAYER: Streamlit Dashboard (app/)            │
 │  ├─ Page 1: Value, Scale & Composition                    │
 │  └─ Page 2: Land Efficiency (Value/ha)                    │
 └──────────────────────┬──────────────────────────────────────┘
                        │ Mini-queries (filtered aggregates)
 ┌──────────────────────▼──────────────────────────────────────┐
-│  SEMANTIC LAYER: SQL Views (sql/views.sql)                 │
+│  GOLD LAYER: SQL Views (sql/views.sql)                     │
 │  ├─ vw_agri_base (join + engineered metrics)              │
 │  └─ vw_agri_productivity_drivers (rolling averages)       │
 └──────────────────────┬──────────────────────────────────────┘
                        │ Analytics queries
 ┌──────────────────────▼──────────────────────────────────────┐
-│  CLEAN LAYER: Analysis-Ready Tables (sql/clean_tables.sql)│
+│  SILVER LAYER: Analysis-Ready Tables (sql/clean_tables.sql)
 │  ├─ crops_clean (grain: country, crop, year)              │
 │  └─ value_clean (grain: country, crop, year)              │
 │  • Unique constraints prevent duplicates                   │
@@ -51,7 +53,7 @@ A small end-to-end data project built on **FAOSTAT** crop area/production/value 
 └──────────────────────┬──────────────────────────────────────┘
                        │ ETL pipeline (etl.py)
 ┌──────────────────────▼──────────────────────────────────────┐
-│  RAW LAYER: Landing Zone (sql/raw_tables.sql)              │
+│  BRONZE LAYER: Landing Zone (sql/raw_tables.sql)           │
 │  ├─ raw_crops (append-only)                                │
 │  └─ raw_production_value (append-only)                     │
 │  • No constraints; original data untouched                 │
@@ -59,7 +61,7 @@ A small end-to-end data project built on **FAOSTAT** crop area/production/value 
 └──────────────────────┬──────────────────────────────────────┘
                        │ load_raw.py (initial setup only)
 ┌──────────────────────▼──────────────────────────────────────┐
-│  CSV FILES: Data Source (data/raw/)                        │
+│  DATA SOURCE: CSVs (data/raw/)                             │
 │  ├─ raw_crops.csv (FAOSTAT)                                │
 │  └─ raw_production_value.csv (FAOSTAT)                     │
 └─────────────────────────────────────────────────────────────┘
@@ -67,17 +69,17 @@ A small end-to-end data project built on **FAOSTAT** crop area/production/value 
 
 **Layer responsibilities:**
 
-1. **Raw Layer (Landing Zone)**
+1. **Bronze Layer (Landing Zone)**
    - Append-only tables preserve original data as-is
    - Used as a stable source for reprocessing
    - Rebuilt on schema changes only (rare)
 
-2. **Clean Layer (Analysis-Ready)**
+2. **Silver Layer (Analysis-Ready)**
    - Idempotent upserts ensure safe reruns
    - Grain: `(country, crop, year)` per table
    - Timestamps for observability
 
-3. **Semantic Layer (Views)**
+3. **Gold Layer (Semantic/Analytics)**
    - Encode business logic once; reuse everywhere
    - Join raw data and create engineered metrics
    - Enable fast aggregations for dashboards
